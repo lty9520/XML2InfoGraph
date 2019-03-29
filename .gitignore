@@ -24,5 +24,11 @@
 *.png
 *.vcxproj
 *.filters
-
-Debug
+*.obj
+*.tlog
+*.log
+*.idb
+*.pdb
+*.suo
+*.ilk
+*.exe
