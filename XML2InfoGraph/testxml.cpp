@@ -13,12 +13,11 @@
 using namespace std;
 
 //box参数结构体
-struct BoxSize
+struct InfoGraph
 {
-	int xMin;
-	int yMin;
-	int xMax;
-	int yMax;
+	string type;
+	string text_str;
+	string father_name;
 };
 
 // 依赖cJSon，递归
@@ -266,10 +265,10 @@ string Xml2Json(string strXml)
 }
 
 
-bool ReadParaXml(string m_strXmlPath, vector<BoxSize>& vecNode)
+void ReadParaXml(string m_strXmlPath, vector<InfoGraph>& vecNode)
 {
 	//初始化一個存放結果的結構體
-	BoxSize *pNode = new BoxSize;
+	InfoGraph *pNode = new InfoGraph;
 
 	//读取xml文件的文档
 	TiXmlDocument* Document = new TiXmlDocument();
@@ -278,10 +277,10 @@ bool ReadParaXml(string m_strXmlPath, vector<BoxSize>& vecNode)
 	if (!Document->LoadFile(m_strXmlPath.c_str()))
 	{
 		cerr << Document->ErrorDesc() << endl;
-		return false;
+		
 	}
 	//Document->Print();
-	//根目录
+	//根目录--<VisioDocument>
 	TiXmlElement* RootElement = Document->RootElement();
 	//检测根元素存在性
 	if (RootElement == NULL)
@@ -289,57 +288,155 @@ bool ReadParaXml(string m_strXmlPath, vector<BoxSize>& vecNode)
 		cerr << "Failed to load file: No root element." << endl;
 		Document->Clear();
 	}
-	//根目录下的第一个节点层
-	TiXmlElement* NextElement = RootElement->FirstChildElement();		
+	//根目录下的第一个节点层--<Pages>层
+	TiXmlElement* PagesElement = RootElement->FirstChildElement();		
 	//for(NextElement;NextElement;NextElement = NextElement->NextSiblingElement())
-	//判断有没有读完
-	while (NextElement != NULL)		
+	while (PagesElement != NULL)
 	{
-		//读到object节点
-		if (NextElement->ValueTStr() == "Shapes")		
+		//读到<Pages>层
+		if (PagesElement->ValueTStr() == "Pages")
 		{
-			//NextElement = NextElement->NextSiblingElement();
-
-			TiXmlElement* BoxElement = NextElement->FirstChildElement();
-			//读到box节点
-			while (BoxElement->ValueTStr() != "Shape")		
+			//读到<Page>层
+			TiXmlElement* PageElement = PagesElement->FirstChildElement();
+			if (PageElement != NULL)
 			{
-				BoxElement = BoxElement->NextSiblingElement();
-			}
-			//索引到xmin节点
-			TiXmlElement* xminElemeng = BoxElement->FirstChildElement();
-			{
-				//分别读取四个数值
-				pNode->xMin = atof(xminElemeng->GetText());
-				TiXmlElement* yminElemeng = xminElemeng->NextSiblingElement();
-				pNode->yMin = atof(yminElemeng->GetText());
-				TiXmlElement* xmaxElemeng = yminElemeng->NextSiblingElement();
-				pNode->xMax = atof(xmaxElemeng->GetText());
-				TiXmlElement* ymaxElemeng = xmaxElemeng->NextSiblingElement();
-				pNode->yMax = atof(ymaxElemeng->GetText());
+				//读取<Page>的下一层
+				TiXmlElement* ShapesElement = PageElement->FirstChildElement();
+				while (ShapesElement != NULL)
+				{
+					//读到<Shapes>层
+					if (ShapesElement->ValueTStr() == "Shapes")
+					{
+						//读到<Shape>层
+						TiXmlElement* ShapeElement = ShapesElement->FirstChildElement();
+						if (ShapeElement != NULL)
+						{
+							//判断有没有读完
+							while (ShapeElement != NULL)
+							{
+								//读到Shape节点
+								if (ShapeElement->ValueTStr() == "Shape")
+								{
+									//NextElement = NextElement->NextSiblingElement();
+									//解析Shape的属性，获得当前节点的名字、类型、父级名字
+									const char* attr_nameu;
+									//获得当前<Shape>的属性的"NameU"参数
+									attr_nameu = ShapeElement->Attribute("NameU");
+									string type_nameu(attr_nameu);
+									string::size_type idx = type_nameu.find("Dynamic connector");
+									if (type_nameu.find("Dynamic connector") == 0)
+									{
+										ShapeElement = ShapeElement->NextSiblingElement();
+									}
+									else
+									{
+										//添加type_nameu参数
+										pNode->type = type_nameu;
+										//cout << attr_nameu << endl;
+										//读取<Shape>的下一层，获取Text等参数
+										TiXmlElement* InfoElement = ShapeElement->FirstChildElement();
+										while (InfoElement != NULL)
+										{
+											//读到Text节点
+											if (InfoElement->ValueTStr() == "Text")
+											{
+												//索引到Text节点
+												//TiXmlElement* textElement = InfoElement->FirstChildElement();
+												pNode->text_str = InfoElement->GetText();
+												//cout << InfoElement->GetText() << endl;
+												InfoElement = InfoElement->NextSiblingElement();
+											}
+											if (InfoElement->ValueTStr() == "Prop")
+											{
+												//TiXmlElement* ResElement = InfoElement->FirstChildElement();
+												const char* attr_id;
+												attr_id = InfoElement->Attribute("ID");
+												if (strcmp(attr_id, "3") == 0)
+												{
+													TiXmlElement* valElement = InfoElement->FirstChildElement();
+													while (valElement != NULL)
+													{
+														if (valElement->ValueTStr() == "Value")
+														{
+															pNode->father_name = valElement->GetText();
+														}
 
-				//加入到向量中
-				vecNode.push_back(*pNode);
+
+														valElement = valElement->NextSiblingElement();
+
+													}
+												}
+
+
+												//InfoElement = InfoElement->NextSiblingElement();
+
+											}
+
+
+											InfoElement = InfoElement->NextSiblingElement();
+
+
+
+
+										}
+										ShapeElement = ShapeElement->NextSiblingElement();
+										//加入到向量中
+										vecNode.push_back(*pNode);
+									}
+									
+									
+									
+								}
+								
+								
+							}
+							
+						}
+						
+						
+						//ShapesElement = ShapesElement->NextSiblingElement();
+						
+						
+					} 
+					
+					ShapesElement = ShapesElement->NextSiblingElement();
+					
+					
+				}
 			}
-		}
-		NextElement = NextElement->NextSiblingElement();
+		} 
+		
+		
+		PagesElement = PagesElement->NextSiblingElement();
+		
+		
+		
 	}
+	
 
 	//释放内存
 	delete pNode;
 	delete Document;
-	cout << "完成xml的读取" << endl;
-	return true;
+	cout << "读取xml完成" << endl;
+	
 }
 
 
 int main()
 {
 
-	string xml_path = "test.xml";
-	vector<BoxSize> vecNode;
+	string xml_path = "test原.xml";
+	vector<InfoGraph> vecNode;
 
 	ReadParaXml(xml_path, vecNode);
+
+	//cout << vecNode.size() << endl;
+	for (int i = 0; i < vecNode.size(); i++)
+	{
+		cout << "ytpe_name = " << vecNode[i].type << endl;
+		cout << "text_str = " << vecNode[i].text_str << endl;
+		cout << "father_name = " << vecNode[i].father_name << endl;
+	}
 
 	string result = "";
 

@@ -22,3 +22,7 @@
 *.html
 *.gif
 *.png
+*.vcxproj
+*.filters
+
+Debug
