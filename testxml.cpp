@@ -26,239 +26,111 @@ struct InfoGraph
 
 <doc><a a1="1" a2="2">123</a></doc> 转 {"doc": {"a": {"-a1": "1","-a2": "2","#text": "123"}}}
 
+cJSON* array = cJSON_CreateArray();
+cJSON_AddItemToObject(root, "testarray", array);
+
+for (int i = 0; i < 5; i++){
+
+cJSON*arrayobj = cJSON_CreateObject();
+
+cJSON_AddItemToArray(array, arrayobj);
+
+cJSON_AddItemToObject(arrayobj, "arrayobjnum", cJSON_CreateNumber(i));
+
+}
+
 */
 
-string Xml2Json(string strXml)
-
+void addChildren(vector<InfoGraph>& children, cJSON * fatherElem)
 {
-	//取得xml字符串
-	string pNext = strXml;
-	//定义Json存储对象
-	cJSON * reJson = cJSON_CreateObject();
-	//定义Json数组
-	cJSON * jsonArray = cJSON_CreateArray();
-	//数组键值
-	string strArrayKey = "";
-	//定位字符串位置标识
-	int nPos = 0;
+	//create children
+	cJSON * first_childElem = cJSON_CreateArray();
 
-	//寻找<Shapes>标签（所有visio图控件都在<Shapes>里存放）
-	if (nPos = pNext.find("<Shapes>") != pNext.npos)
+	cJSON_AddItemToObject(fatherElem, "children", first_childElem);
+
+	
+	for (auto iter = children.cbegin(); iter != children.cend();)
 	{
-		pNext += 8;
-		while ((nPos = pNext.find("<")) != pNext.npos)
-
-		{
-
-			// 获取第一个节点，如：<doc><a a1="1" a2="2">123</a></doc>
-
-			int nPosS = pNext.find("<");
-
-			int nPosE = pNext.find(">");
-
-			if (nPosS < 0 || nPosE < 0)
-
-			{
-
-				printf("key error!");
-
-			}
-
-			//获得键值
-			string strKey = pNext.substr(nPosS + 1, nPosE - nPosS - 1);
-
-			// 解释属性，如：<a a1="1" a2="2">
-
-			cJSON * jsonVal = NULL;
-
-			if ((nPos = strKey.find("=")) > 0)
-
-			{
-
-				jsonVal = cJSON_CreateObject();
-
-				int nPos = strKey.find(" ");
-
-				string temp = strKey.substr(nPos + 1);
-
-				strKey = strKey.substr(0, nPos);
-
-				while ((nPos = temp.find("=")) > 0)
-
-				{
-
-					int nPos1 = temp.find("=");
-
-					int nPos2 = temp.find("\" ", nPos1 + 1);
-
-
-					string strSubKey = temp.substr(0, nPos1);
-
-					string strSubVal = temp.substr(nPos1 + 1);
-
-					if (nPos2 > 0)
-
-						strSubVal = temp.substr(nPos1 + 1, nPos2 - nPos1 - 1);
-
-
-					// 去除转义字符 \"
-
-					if ((int)(nPos = strSubVal.find("\"")) >= 0)
-
-					{
-
-						int nEnd = strSubVal.find("\\", nPos + 1);
-
-						strSubVal = strSubVal.substr(nPos + 1, nEnd - nPos - 1);
-
-					}
-
-					cJSON_AddItemToObject(jsonVal, ("-" + strSubKey).c_str(), cJSON_CreateString(strSubVal.c_str()));
-
-
-					if (nPos2 < 0)
-
-						break;
-
-
-					temp = temp.substr(nPos2 + 2);
-
-				}
-
-			}
-
-
-			int nPosKeyE = pNext.find("</" + strKey + ">");
-
-			if (nPosKeyE < 0)
-
-			{
-
-				printf("key error!");
-
-			}
-
-			// 获取节点内容，如<a a1="1" a2="2">123</a> 或 123
-
-			string strVal = pNext.substr(nPosE + 1, nPosKeyE - nPosE - 1);
-
-			if ((nPos = strVal.find("<")) >= 0)
-
-			{
-
-				// 包含子节点，如<a a1="1" a2="2">123</a>
-
-				strVal = Xml2Json(strVal);
-
-
-				if (jsonVal)
-
-				{
-
-					if (strVal != "")
-
-						cJSON_AddItemToObject(jsonVal, "#text", cJSON_Parse(strVal.c_str()));
-
-				}
-
-				else
-
-				{
-
-					jsonVal = cJSON_Parse(strVal.c_str());
-
-				}
-
-			}
-
-			else
-
-			{
-
-				// 不包含子节点，如123
-
-				if (jsonVal)
-
-				{
-
-					if (strVal != "")
-
-						cJSON_AddItemToObject(jsonVal, "#text", cJSON_CreateString(strVal.c_str()));
-
-				}
-
-				else
-
-				{
-
-					jsonVal = cJSON_CreateString(strVal.c_str());
-
-				}
-
-			}
-
-
-			// 获取下一个节点
-
-			pNext = pNext.substr(nPosKeyE + strKey.size() + 3);
-
-
-			// 根据下一节点判断是否为数组
-
-			int nPosNext = pNext.find("<");
-
-			int nPosNextSame = pNext.find("<" + strKey + ">");
-
-			if (strArrayKey != "" || (nPosNext >= 0 && nPosNextSame >= 0 && nPosNext == nPosNextSame))
-
-			{
-
-				// 数组
-
-				cJSON_AddItemToArray(jsonArray, jsonVal);
-
-				strArrayKey = strKey;
-
-			}
-
-			else
-
-			{
-
-				// 非数组
-
-				cJSON_AddItemToObject(reJson, strKey.c_str(), jsonVal);
-
-			}
-
-		}
+		cJSON * temp_child = cJSON_CreateObject();
+		cJSON_AddItemToArray(first_childElem, temp_child);
+		cJSON_AddItemToObject(temp_child, "name", cJSON_CreateString(iter->text_str.c_str()));
+		iter = children.erase(iter);
+		
+		temp_child = cJSON_CreateObject();
 	}
 	
+	
+	
 
+	//cJSON_Delete(temp_child);
+	//cJSON_Delete(first_childElem);
 
+	//return fatherElem;
+}
 
-	if (strArrayKey != "")
-
+vector<InfoGraph> findNextChildren(vector<InfoGraph>& originNode, string father_name)
+{
+	string temp_root_name = father_name;
+	//findd children 
+	vector<InfoGraph> child;
+	string fir_child_name;
+	for (auto iter = originNode.cbegin(); iter != originNode.cend();)
 	{
+		if (iter->father_name == temp_root_name)
+		{
+			InfoGraph temp = *iter;
+			child.push_back(temp);
+			fir_child_name = iter->text_str;
+			iter = originNode.erase(iter);
+		}
+		else
+			iter++;
+	}
+	return child;
+}
 
-		cJSON_AddItemToObject(reJson, strArrayKey.c_str(), jsonArray);
+string Xml2Json(vector<InfoGraph>& vecNode)
 
+{
+	string strJson;
+
+	cJSON * rootElem = cJSON_CreateObject();
+	string root_name;
+	//find root elem and create it 
+	for (auto iter = vecNode.cbegin(); iter != vecNode.cend();)
+	{
+		if (iter->type.find("External entity") == 0 && iter->father_name == "0")
+		{
+			cJSON_AddItemToObject(rootElem, "name", cJSON_CreateString(iter->text_str.c_str()));
+			root_name = iter->text_str;
+			iter = vecNode.erase(iter);
+			
+		}
+		else
+			iter++;
+		
+			
 	}
 
+	/*char* temp =  cJSON_Print(rootElem);
+	cout << string(temp) << endl;*/
 
-	string strJson = cJSON_Print(reJson);
-
-
-	if (reJson)
-
+	/*cJSON * temp_fatherElem = cJSON_CreateObject();
+	temp_fatherElem = rootElem;*/
+	if (!vecNode.empty())
 	{
-
-		cJSON_Delete(reJson);
-
-		reJson = NULL;
-
+		
+		vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+		addChildren(children, rootElem);
+		
 	}
 
+	//cout << "!" << endl;
+	
+	char* temp = cJSON_Print(rootElem);
+	cout << string(temp) << endl;
+
+	cJSON_Print(rootElem);
 
 	return strJson;
 
@@ -422,8 +294,16 @@ void ReadParaXml(string m_strXmlPath, vector<InfoGraph>& vecNode)
 }
 
 
+
 int main()
 {
+	cJSON* root = cJSON_CreateObject();
+	
+
+	char*temjson = cJSON_Print(root);
+
+	printf("%s\n", temjson);
+
 
 	string xml_path = "test原.xml";
 	vector<InfoGraph> vecNode;
@@ -433,14 +313,15 @@ int main()
 	//cout << vecNode.size() << endl;
 	for (int i = 0; i < vecNode.size(); i++)
 	{
-		cout << "ytpe_name = " << vecNode[i].type << endl;
-		cout << "text_str = " << vecNode[i].text_str << endl;
-		cout << "father_name = " << vecNode[i].father_name << endl;
+	cout << "ytpe_name = " << vecNode[i].type << endl;
+	cout << "text_str = " << vecNode[i].text_str << endl;
+	cout << "father_name = " << vecNode[i].father_name << endl;
 	}
+	cout << endl;
 
 	string result = "";
 
-	//result = Xml2Json(xml);
+	result = Xml2Json(vecNode);
 
 	system("pause");
 	return 0;
