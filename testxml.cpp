@@ -115,13 +115,17 @@ string Xml2Json(vector<InfoGraph>& vecNode)
 	/*char* temp =  cJSON_Print(rootElem);
 	cout << string(temp) << endl;*/
 
-	/*cJSON * temp_fatherElem = cJSON_CreateObject();
-	temp_fatherElem = rootElem;*/
+	cJSON * temp_fatherElem = cJSON_CreateObject();
+	temp_fatherElem = rootElem;
 	if (!vecNode.empty())
 	{
 		
 		vector<InfoGraph> children = findNextChildren(vecNode, root_name);
-		addChildren(children, rootElem);
+		addChildren(children, temp_fatherElem);
+		temp_fatherElem = temp_fatherElem->child->next->child->child;
+		root_name = temp_fatherElem->valuestring;
+		
+
 		
 	}
 
@@ -297,12 +301,12 @@ void ReadParaXml(string m_strXmlPath, vector<InfoGraph>& vecNode)
 
 int main()
 {
-	cJSON* root = cJSON_CreateObject();
-	
+	/*cJSON* root = cJSON_CreateObject();
+
 
 	char*temjson = cJSON_Print(root);
 
-	printf("%s\n", temjson);
+	printf("%s\n", temjson);*/
 
 
 	string xml_path = "testԭ.xml";
