@@ -12,7 +12,7 @@
 
 using namespace std;
 
-//box参数结构体
+//参数结构体
 struct InfoGraph
 {
 	string type;
@@ -117,13 +117,37 @@ string Xml2Json(vector<InfoGraph>& vecNode)
 
 	cJSON * temp_fatherElem = cJSON_CreateObject();
 	temp_fatherElem = rootElem;
-	if (!vecNode.empty())
+	while (!vecNode.empty())
 	{
+		if (temp_fatherElem->child->child ==NULL)
+		{
+			vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+			addChildren(children, temp_fatherElem);
+
+			temp_fatherElem = temp_fatherElem->child->next->child;
+			root_name = temp_fatherElem->child->valuestring;
+		} 
+		else
+		{
+			if (temp_fatherElem->child->next->child->next == NULL)
+			{
+				vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+				addChildren(children, temp_fatherElem);
+
+				temp_fatherElem = temp_fatherElem->child->next->child;
+				root_name = temp_fatherElem->child->valuestring;
+			}
+			else
+			{
+				vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+				addChildren(children, temp_fatherElem);
+
+				temp_fatherElem = temp_fatherElem->child->next->child->next;
+				root_name = temp_fatherElem->child->valuestring;
+			}
+		}
 		
-		vector<InfoGraph> children = findNextChildren(vecNode, root_name);
-		addChildren(children, temp_fatherElem);
-		temp_fatherElem = temp_fatherElem->child->next->child->child;
-		root_name = temp_fatherElem->valuestring;
+		
 		
 
 		
@@ -131,10 +155,10 @@ string Xml2Json(vector<InfoGraph>& vecNode)
 
 	//cout << "!" << endl;
 	
-	char* temp = cJSON_Print(rootElem);
-	cout << string(temp) << endl;
+	/*char* temp = cJSON_Print(rootElem);
+	cout << string(temp) << endl;*/
 
-	cJSON_Print(rootElem);
+	//cJSON_Print(rootElem);
 
 	return strJson;
 
@@ -309,19 +333,19 @@ int main()
 	printf("%s\n", temjson);*/
 
 
-	string xml_path = "test原.xml";
+	string xml_path = "data.xml";
 	vector<InfoGraph> vecNode;
 
 	ReadParaXml(xml_path, vecNode);
 
 	//cout << vecNode.size() << endl;
-	for (int i = 0; i < vecNode.size(); i++)
+	/*for (int i = 0; i < vecNode.size(); i++)
 	{
 	cout << "ytpe_name = " << vecNode[i].type << endl;
 	cout << "text_str = " << vecNode[i].text_str << endl;
 	cout << "father_name = " << vecNode[i].father_name << endl;
 	}
-	cout << endl;
+	cout << endl;*/
 
 	string result = "";
 
