@@ -95,6 +95,106 @@ vector<InfoGraph> MainWindow::findNextChildren(vector<InfoGraph>& originNode, st
     return child;
 }
 
+void MainWindow::addNextChildren(cJSON * tempFatherElem, vector<InfoGraph>& vecNode, string root_name)
+{
+
+    cJSON * tempSubfatherElem = cJSON_CreateObject();
+
+    while (!vecNode.empty() || tempFatherElem != NULL)
+    {
+        /**level one*/
+
+        //vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+        //if(!children.empty())
+        //{
+        //    addChildren(children, temp_fatherElem);
+        //    /**level one; children part*/
+        //    temp_fatherElem = temp_fatherElem->child->next->child;
+        //    root_name = temp_fatherElem->child->valuestring;
+        //}
+
+        /**next level(children)*/
+        tempSubfatherElem = tempFatherElem;
+        while(tempFatherElem != NULL)
+        {
+            vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+            if(!children.empty())
+            {
+                addChildren(children, tempFatherElem);
+
+                tempFatherElem = tempFatherElem->child->next->child;
+                addNextChildren(tempFatherElem, vecNode, tempFatherElem->child->valuestring);
+
+                tempFatherElem = tempSubfatherElem;
+                tempFatherElem = tempFatherElem->next;
+                tempSubfatherElem = tempFatherElem;
+                if(tempFatherElem != NULL)
+                {
+                   root_name = tempFatherElem->child->valuestring;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                tempFatherElem = tempFatherElem->next;
+                if(tempFatherElem != NULL)
+                {
+                   root_name = tempFatherElem->child->valuestring;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+        }
+        //tempFatherElem = tempSubfatherElem;
+        //tempFatherElem = tempFatherElem->child->next->child;
+        //if(tempFatherElem != NULL)
+        //{
+        //   root_name = tempFatherElem->child->valuestring;
+        //}
+        //else
+        //{
+        //    continue;
+        //}
+        //root_name = temp_fatherElem->child->valuestring;
+
+
+
+
+
+
+        /*
+        if (temp_fatherElem->child->next->child->next == NULL)
+        {
+            vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+            addChildren(children, temp_fatherElem);
+
+            temp_fatherElem = temp_fatherElem->child->next->child;
+            root_name = temp_fatherElem->child->valuestring;
+        }
+        else
+        {
+            vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+            addChildren(children, temp_fatherElem);
+
+            temp_fatherElem = temp_fatherElem->child->next->child->next;
+            root_name = temp_fatherElem->child->valuestring;
+        }
+        */
+
+
+
+
+
+
+    }
+}
+
 QString MainWindow::Xml2Json(vector<InfoGraph>& vecNode)
 
 {
@@ -122,10 +222,68 @@ QString MainWindow::Xml2Json(vector<InfoGraph>& vecNode)
     cout << string(temp) << endl;*/
 
     cJSON * temp_fatherElem = cJSON_CreateObject();
-    temp_fatherElem = rootElem;
+    //cJSON * temp_subfatherElem = cJSON_CreateObject();
+    vector<InfoGraph> root_children = findNextChildren(vecNode, root_name);
+    addChildren(root_children, rootElem);
+    /**root level; children part*/
+    temp_fatherElem = rootElem->child->next->child;
+    root_name = temp_fatherElem->child->valuestring;
+
+    addNextChildren(temp_fatherElem, vecNode, root_name);
+
+    /*
     while (!vecNode.empty())
     {
-        if (temp_fatherElem->child->child ==NULL)
+        //level one
+
+        //vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+        //if(!children.empty())
+        //{
+        //    addChildren(children, temp_fatherElem);
+        //    //level one; children part
+        //    temp_fatherElem = temp_fatherElem->child->next->child;
+        //    root_name = temp_fatherElem->child->valuestring;
+        //}
+
+        //next level(children)
+        temp_subfatherElem = temp_fatherElem;
+        while(temp_fatherElem != NULL)
+        {
+            vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+            addChildren(children, temp_fatherElem);
+
+
+
+            temp_fatherElem = temp_fatherElem->next;
+            if(temp_fatherElem != NULL)
+            {
+               root_name = temp_fatherElem->child->valuestring;
+            }
+            else
+            {
+                continue;
+            }
+
+        }
+        temp_fatherElem = temp_subfatherElem;
+        temp_fatherElem = temp_fatherElem->child->next->child;
+        if(temp_fatherElem != NULL)
+        {
+           root_name = temp_fatherElem->child->valuestring;
+        }
+        else
+        {
+            continue;
+        }
+        //root_name = temp_fatherElem->child->valuestring;
+
+
+
+
+
+
+
+        if (temp_fatherElem->child->next->child->next == NULL)
         {
             vector<InfoGraph> children = findNextChildren(vecNode, root_name);
             addChildren(children, temp_fatherElem);
@@ -135,30 +293,21 @@ QString MainWindow::Xml2Json(vector<InfoGraph>& vecNode)
         }
         else
         {
-            if (temp_fatherElem->child->next->child->next == NULL)
-            {
-                vector<InfoGraph> children = findNextChildren(vecNode, root_name);
-                addChildren(children, temp_fatherElem);
+            vector<InfoGraph> children = findNextChildren(vecNode, root_name);
+            addChildren(children, temp_fatherElem);
 
-                temp_fatherElem = temp_fatherElem->child->next->child;
-                root_name = temp_fatherElem->child->valuestring;
-            }
-            else
-            {
-                vector<InfoGraph> children = findNextChildren(vecNode, root_name);
-                addChildren(children, temp_fatherElem);
-
-                temp_fatherElem = temp_fatherElem->child->next->child->next;
-                root_name = temp_fatherElem->child->valuestring;
-            }
+            temp_fatherElem = temp_fatherElem->child->next->child->next;
+            root_name = temp_fatherElem->child->valuestring;
         }
 
 
 
 
 
-    }
 
+
+    }
+    */
     //cout << "!" << endl;
 
     /*char* temp = cJSON_Print(rootElem);

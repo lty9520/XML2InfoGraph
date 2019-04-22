@@ -48,6 +48,7 @@ public:
 
     void addChildren(vector<InfoGraph>& children, cJSON * fatherElem);
     vector<InfoGraph> findNextChildren(vector<InfoGraph>& originNode, string father_name);
+    void addNextChildren(cJSON * tempFatherElem, vector<InfoGraph>& vecNode, string root_name);
     QString Xml2Json(vector<InfoGraph>& vecNode);
     void ReadParaXml(string m_strXmlPath, vector<InfoGraph>& vecNode);
 
