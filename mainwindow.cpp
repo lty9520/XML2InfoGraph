@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //qDebug() << html_path;
     //QString html_path = "file:///C:/Users/Administrator/Documents/EchartsDemo/res/tree-radial.html";
     QString html_applicationDirPath;
+    //当前exe文件所在位置的地址
     html_applicationDirPath = QCoreApplication::applicationDirPath();
     QString html_path = html_applicationDirPath + "/res/tree-radial.html";
 
@@ -46,7 +47,11 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     mView->resize(this->size());
 }
 
-
+/*!
+ * \brief MainWindow::addChildren   添加当前层的节点的子节点
+ * \param children      当前节点的子节点组
+ * \param fatherElem    当前节点，即当前父节点
+ */
 void MainWindow::addChildren(vector<InfoGraph>& children, cJSON * fatherElem)
 {
     //create children
@@ -74,6 +79,12 @@ void MainWindow::addChildren(vector<InfoGraph>& children, cJSON * fatherElem)
     //return fatherElem;
 }
 
+/*!
+ * \brief MainWindow::findNextChildren  寻找当前节点的所有子节点
+ * \param originNode    当前节点组
+ * \param father_name   当前节点的名字
+ * \return  返回当前节点的子节点组
+ */
 vector<InfoGraph> MainWindow::findNextChildren(vector<InfoGraph>& originNode, string father_name)
 {
     string temp_root_name = father_name;
@@ -95,6 +106,12 @@ vector<InfoGraph> MainWindow::findNextChildren(vector<InfoGraph>& originNode, st
     return child;
 }
 
+/*!
+ * \brief MainWindow::addNextChildren   添加当前节点的子节点的同级子节点
+ * \param tempFatherElem    当前临时父节点
+ * \param vecNode           当前子节点组
+ * \param root_name         当前节点的名字
+ */
 void MainWindow::addNextChildren(cJSON * tempFatherElem, vector<InfoGraph>& vecNode, string root_name)
 {
 
@@ -195,6 +212,11 @@ void MainWindow::addNextChildren(cJSON * tempFatherElem, vector<InfoGraph>& vecN
     }
 }
 
+/*!
+ * \brief MainWindow::Xml2Json  将解析XML文件得到的结果转换为需要的Json格式数据
+ * \param vecNode   解析获得的节点组
+ * \return  返回所得的Json格式
+ */
 QString MainWindow::Xml2Json(vector<InfoGraph>& vecNode)
 
 {
@@ -327,7 +349,11 @@ QString MainWindow::Xml2Json(vector<InfoGraph>& vecNode)
 
 }
 
-
+/*!
+ * \brief MainWindow::ReadParaXml   读取XML文件并解析所需要的数据
+ * \param m_strXmlPath  XMl文件路径
+ * \param vecNode       解析结果结构体组
+ */
 void MainWindow::ReadParaXml(string m_strXmlPath, vector<InfoGraph>& vecNode)
 {
     //qDebug << QString::fromStdString("1");
